@@ -131,7 +131,6 @@ class SessionMiddleware implements MiddlewareInterface
     {
         return SetCookie::create('lgsid')
             ->withPath('/')
-            ->withSecure(true)
             ->withSameSite(SameSite::strict())
             ->withHttpOnly(true)
             ->withMaxAge($this->sessionTtl);

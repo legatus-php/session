@@ -27,6 +27,7 @@
     },
     "require": {
         "php": ">=7.4",
+        "ext-json": "*",
         "cakephp/chronos": "^2.0",
         "defuse/php-encryption": "^2.2",
         "dflydev/fig-cookies": "^2.0",
