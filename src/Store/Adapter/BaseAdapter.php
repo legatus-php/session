@@ -40,7 +40,7 @@ abstract class BaseAdapter implements StorageAdapter
     /**
      * @param array $data
      *
-     * @return EncryptedSession
+     * @return string
      *
      * @throws JsonException
      * @throws EnvironmentIsBrokenException

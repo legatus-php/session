@@ -94,6 +94,7 @@ final class InMemorySession implements Session
     {
         $this->data = $mutator($this->data);
         $this->update();
+
         return $this;
     }
 

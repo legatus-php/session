@@ -1,16 +1,23 @@
 <?php
+
 declare(strict_types=1);
+
+/*
+ * This file is part of the Legatus project organization.
+ * (c) Matías Navarro-Carter <contact@mnavarro.dev>
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 namespace Legatus\Http\Session\Store;
 
 use Cake\Chronos\Chronos;
 use Legatus\Http\Session\InMemorySession;
-use Legatus\Http\Session\Store\Adapter\StorageAdapter;
 use Legatus\Http\Session\Session;
+use Legatus\Http\Session\Store\Adapter\StorageAdapter;
 
 /**
- * Class AdaptableSessionStore
- * @package Legatus\Http\Session\Manager
+ * Class AdaptableSessionStore.
  */
 final class AdaptableSessionStore implements SessionStore
 {
@@ -21,6 +28,7 @@ final class AdaptableSessionStore implements SessionStore
 
     /**
      * AdaptableSessionStore constructor.
+     *
      * @param StorageAdapter $adapter
      */
     public function __construct(StorageAdapter $adapter)
@@ -30,6 +38,7 @@ final class AdaptableSessionStore implements SessionStore
 
     /**
      * @param string $id
+     *
      * @return Session|null
      */
     public function fetch(string $id): ?Session
@@ -38,6 +47,7 @@ final class AdaptableSessionStore implements SessionStore
         if ($data === null) {
             return null;
         }
+
         return new InMemorySession(
             $id,
             $data['data'],

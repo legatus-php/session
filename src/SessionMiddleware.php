@@ -114,7 +114,7 @@ class SessionMiddleware implements MiddlewareInterface
         if (!$cookie instanceof Cookie) {
             return $this->store->new();
         }
-        $session = $this->store->fetch($cookie->getValue());
+        $session = $this->store->fetch($cookie->getValue() ?? '');
         if ($session instanceof Session) {
             return $session;
         }
