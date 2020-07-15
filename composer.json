@@ -1,0 +1,51 @@
+{
+    "name": "legatus/session",
+    "description": "Session handling for PSR-7 applications",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Matias Navarro Carter",
+            "email": "contact@mnavarro.dev"
+        }
+    ],
+    "repositories": [{
+        "type": "composer",
+        "url": "https://satis.mnavarro.dev"
+    }],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "Legatus\\Http\\Session\\": "src"
+        },
+        "files": ["functions.php"]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Legatus\\Http\\Session\\Tests\\": "tests"
+        }
+    },
+    "require": {
+        "php": ">=7.4",
+        "cakephp/chronos": "^2.0",
+        "defuse/php-encryption": "^2.2",
+        "dflydev/fig-cookies": "^2.0",
+        "psr/http-server-middleware": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0",
+        "friendsofphp/php-cs-fixer": "^2.16",
+        "vimeo/psalm": "^3.7"
+    },
+    "scripts": {
+        "lint": "php-cs-fixer fix --ansi",
+        "ci:style": "php-cs-fixer fix --dry-run -vvv --ansi",
+        "ci:test": "phpunit --testdox --coverage-text",
+        "ci:types": "psalm",
+        "ci": [
+            "@ci:types",
+            "@ci:test",
+            "@ci:style"
+        ]
+    }
+}
