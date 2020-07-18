@@ -11,11 +11,8 @@ declare(strict_types=1);
 
 namespace Legatus\Http\Session\Store\Adapter;
 
-use Defuse\Crypto\Crypto;
-use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
-use Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException;
-use Defuse\Crypto\Key;
 use JsonException;
+use Legatus\Support\Crypto\Cipher\Cipher;
 
 /**
  * Class BaseAdapter.
@@ -25,16 +22,19 @@ use JsonException;
  */
 abstract class BaseAdapter implements StorageAdapter
 {
-    private Key $key;
+    /**
+     * @var Cipher
+     */
+    private Cipher $cipher;
 
     /**
      * BaseAdapter constructor.
      *
-     * @param Key $key
+     * @param Cipher $cipher
      */
-    public function __construct(Key $key)
+    public function __construct(Cipher $cipher)
     {
-        $this->key = $key;
+        $this->cipher = $cipher;
     }
 
     /**
@@ -43,13 +43,12 @@ abstract class BaseAdapter implements StorageAdapter
      * @return string
      *
      * @throws JsonException
-     * @throws EnvironmentIsBrokenException
      */
     protected function encrypt(array $data): string
     {
         $serialized = json_encode($data, JSON_THROW_ON_ERROR);
 
-        return Crypto::encrypt($serialized, $this->key, true);
+        return $this->cipher->encrypt($serialized);
     }
 
     /**
@@ -57,13 +56,13 @@ abstract class BaseAdapter implements StorageAdapter
      *
      * @return array
      *
-     * @throws EnvironmentIsBrokenException
-     * @throws WrongKeyOrModifiedCiphertextException
      * @throws JsonException
+     * @throws \Legatus\Support\Crypto\Cipher\ExpiredCipher
+     * @throws \Legatus\Support\Crypto\Cipher\InvalidCipher
      */
     protected function decrypt(string $contents): array
     {
-        $plainText = Crypto::decrypt($contents, $this->key, true);
+        $plainText = $this->cipher->decrypt($contents);
 
         return json_decode($plainText, true, 512, JSON_THROW_ON_ERROR);
     }
