@@ -13,7 +13,7 @@ namespace Legatus\Http\Session\Store\Adapter;
 
 use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
 use Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException;
-use Defuse\Crypto\Key;
+use Legatus\Support\Crypto\Cipher\Cipher;
 
 /**
  * Class FilesystemAdapter.
@@ -25,12 +25,12 @@ final class FilesystemAdapter extends BaseAdapter
     /**
      * FilesystemStorage constructor.
      *
-     * @param Key         $key
+     * @param Cipher      $cipher
      * @param string|null $path
      */
-    public function __construct(Key $key, string $path = null)
+    public function __construct(Cipher $cipher, string $path = null)
     {
-        parent::__construct($key);
+        parent::__construct($cipher);
         $this->path = $path ?? sys_get_temp_dir();
         $this->ensurePath();
     }

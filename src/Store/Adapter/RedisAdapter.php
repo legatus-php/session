@@ -15,6 +15,7 @@ use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
 use Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException;
 use Defuse\Crypto\Key;
 use JsonException;
+use Legatus\Support\Crypto\Cipher\Cipher;
 use Redis;
 
 /**
@@ -28,13 +29,13 @@ final class RedisAdapter extends BaseAdapter
     /**
      * RedisAdapter constructor.
      *
-     * @param Key    $key
+     * @param Cipher $cipher
      * @param Redis  $redis
      * @param string $namespace
      */
-    public function __construct(Key $key, Redis $redis, string $namespace = 'legatus:sessions')
+    public function __construct(Cipher $cipher, Redis $redis, string $namespace = 'legatus:sessions')
     {
-        parent::__construct($key);
+        parent::__construct($cipher);
         $this->redis = $redis;
         $this->namespace = $namespace;
     }
