@@ -16,13 +16,12 @@
     "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
-            "Legatus\\Http\\Session\\": "src"
-        },
-        "files": ["functions.php"]
+            "Legatus\\Http\\": ["src/session", "src/middleware", "src/storage", "src/manager"]
+        }
     },
     "autoload-dev": {
         "psr-4": {
-            "Legatus\\Http\\Session\\Tests\\": "tests"
+            "Legatus\\Http\\":  ["tests/session", "tests/middleware", "tests/storage", "tests/manager"]
         }
     },
     "require": {
@@ -31,7 +30,7 @@
         "cakephp/chronos": "^2.0",
         "dflydev/fig-cookies": "^2.0",
         "psr/http-server-middleware": "^1.0",
-        "legatus/crypto": "^0.4.0"
+        "legatus/crypto": "^0.5.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.0",

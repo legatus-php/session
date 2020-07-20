@@ -12,12 +12,12 @@ declare(strict_types=1);
 require_once __DIR__.'/../vendor/autoload.php';
 
 $key = Defuse\Crypto\Key::createNewRandomKey();
-$adapter = new Legatus\Http\Session\Store\Adapter\FilesystemAdapter($key);
-$store = new Legatus\Http\Session\Store\AdaptableSessionStore($adapter);
-$middleware = new Legatus\Http\Session\SessionMiddleware($store);
+$cipher = new Legatus\Support\DefuseCipher($key);
+$adapter = new Legatus\Http\FilesystemSessionStorage($cipher);
+$store = new Legatus\Http\StorageSessionManager($adapter);
+$middleware = new Legatus\Http\SessionMiddleware($store);
 
 $middleware->process($request, $handler);
 
-// Then, in next middleware you can:
-
-Legatus\Http\session($request)->mutate(fn ($data) => $data['count'] ? $data['count']++ : 1);
+// Then, in subsequent middleware you can:
+Legatus\Http\SessionMiddleware::session($request)->mutate(fn ($data) => $data['count'] ? $data['count']++ : 1);

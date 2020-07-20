@@ -9,31 +9,25 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Legatus\Http\Session\Store;
+namespace Legatus\Http;
 
 use Cake\Chronos\Chronos;
-use Legatus\Http\Session\InMemorySession;
-use Legatus\Http\Session\Session;
-use Legatus\Http\Session\Store\Adapter\StorageAdapter;
 
 /**
  * Class AdaptableSessionStore.
  */
-final class AdaptableSessionStore implements SessionStore
+final class StorageSessionManager implements SessionManager
 {
-    /**
-     * @var StorageAdapter
-     */
-    private StorageAdapter $adapter;
+    private SessionStorage $storage;
 
     /**
      * AdaptableSessionStore constructor.
      *
-     * @param StorageAdapter $adapter
+     * @param SessionStorage $storage
      */
-    public function __construct(StorageAdapter $adapter)
+    public function __construct(SessionStorage $storage)
     {
-        $this->adapter = $adapter;
+        $this->storage = $storage;
     }
 
     /**
@@ -43,12 +37,12 @@ final class AdaptableSessionStore implements SessionStore
      */
     public function fetch(string $id): ?Session
     {
-        $data = $this->adapter->retrieve($id);
+        $data = $this->storage->retrieve($id);
         if ($data === null) {
             return null;
         }
 
-        return new InMemorySession(
+        return new Session(
             $id,
             $data['data'],
             Chronos::createFromTimestamp($data['startedAt']),
@@ -61,7 +55,7 @@ final class AdaptableSessionStore implements SessionStore
      */
     public function new(): Session
     {
-        return InMemorySession::generate();
+        return Session::generate();
     }
 
     /**
@@ -73,7 +67,7 @@ final class AdaptableSessionStore implements SessionStore
         $data['data'] = $session->all();
         $data['startedAt'] = $session->startedAt()->getTimestamp();
         $data['lastModified'] = $session->lastModified()->getTimestamp();
-        $this->adapter->store($session->getId(), $data);
+        $this->storage->store($session->getId(), $data);
     }
 
     /**
@@ -81,7 +75,7 @@ final class AdaptableSessionStore implements SessionStore
      */
     public function destroy(Session $session): void
     {
-        $this->adapter->delete($session->getId());
+        $this->storage->delete($session->getId());
     }
 
     /**
@@ -89,6 +83,6 @@ final class AdaptableSessionStore implements SessionStore
      */
     public function remove(string $id): void
     {
-        $this->adapter->delete($id);
+        $this->storage->delete($id);
     }
 }

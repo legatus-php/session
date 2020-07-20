@@ -9,11 +9,10 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Legatus\Http\Session\Tests\Store\Adapter;
+namespace Legatus\Http;
 
 use Defuse\Crypto\Key;
-use Legatus\Http\Session\Store\Adapter\FilesystemAdapter;
-use Legatus\Support\Crypto\Cipher\DefuseCipher;
+use Legatus\Support\DefuseCipher;
 use PHPUnit\Framework\TestCase;
 use Vfs\FileSystem;
 
@@ -28,7 +27,7 @@ class FilesystemAdapterTest extends TestCase
         $cipher = new DefuseCipher($key);
         $fs = FileSystem::factory('vfs://');
         $fs->mount();
-        $adapter = new FilesystemAdapter($cipher, 'vfs://');
+        $adapter = new FilesystemSessionStorage($cipher, 'vfs://');
         $adapter->store('id', [
             'count' => 1,
         ]);

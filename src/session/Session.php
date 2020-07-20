@@ -9,7 +9,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Legatus\Http\Session;
+namespace Legatus\Http;
 
 use Cake\Chronos\Chronos;
 use Cake\Chronos\ChronosInterface;
@@ -17,9 +17,13 @@ use Exception;
 use RuntimeException;
 
 /**
- * Class InMemorySession.
+ * Class Session.
+ *
+ * Models an HTTP session.
+ *
+ * Also contains common attributes names that are injected in the user session.
  */
-final class InMemorySession implements Session
+class Session
 {
     private string $id;
     private array $data;

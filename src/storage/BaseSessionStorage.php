@@ -9,30 +9,27 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Legatus\Http\Session\Store\Adapter;
+namespace Legatus\Http;
 
 use JsonException;
-use Legatus\Support\Crypto\Cipher\Cipher;
+use Legatus\Support;
 
 /**
- * Class BaseAdapter.
+ * Class BaseSessionStorage.
  *
  * This base adapter provides methods to easily encrypt and decrypt the contents
  * of a Session.
  */
-abstract class BaseAdapter implements StorageAdapter
+abstract class BaseSessionStorage implements SessionStorage
 {
-    /**
-     * @var Cipher
-     */
-    private Cipher $cipher;
+    private Support\Cipher $cipher;
 
     /**
-     * BaseAdapter constructor.
+     * BaseSessionStorage constructor.
      *
-     * @param Cipher $cipher
+     * @param Support\Cipher $cipher
      */
-    public function __construct(Cipher $cipher)
+    public function __construct(Support\Cipher $cipher)
     {
         $this->cipher = $cipher;
     }
@@ -57,8 +54,8 @@ abstract class BaseAdapter implements StorageAdapter
      * @return array
      *
      * @throws JsonException
-     * @throws \Legatus\Support\Crypto\Cipher\ExpiredCipher
-     * @throws \Legatus\Support\Crypto\Cipher\InvalidCipher
+     * @throws Support\ExpiredCipher
+     * @throws Support\InvalidCipher
      */
     protected function decrypt(string $contents): array
     {

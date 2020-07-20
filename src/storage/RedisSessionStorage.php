@@ -9,25 +9,22 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Legatus\Http\Session\Store\Adapter;
+namespace Legatus\Http;
 
-use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
-use Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException;
-use Defuse\Crypto\Key;
 use JsonException;
-use Legatus\Support\Crypto\Cipher\Cipher;
+use Legatus\Support\Cipher;
 use Redis;
 
 /**
- * Class RedisAdapter.
+ * Class RedisSessionStorage.
  */
-final class RedisAdapter extends BaseAdapter
+final class RedisSessionStorage extends BaseSessionStorage
 {
     private Redis $redis;
     private string $namespace;
 
     /**
-     * RedisAdapter constructor.
+     * RedisSessionStorage constructor.
      *
      * @param Cipher $cipher
      * @param Redis  $redis
@@ -45,9 +42,9 @@ final class RedisAdapter extends BaseAdapter
      *
      * @return array|null
      *
-     * @throws EnvironmentIsBrokenException
-     * @throws WrongKeyOrModifiedCiphertextException
      * @throws JsonException
+     * @throws \Legatus\Support\ExpiredCipher
+     * @throws \Legatus\Support\InvalidCipher
      */
     public function retrieve(string $id): ?array
     {
@@ -64,7 +61,6 @@ final class RedisAdapter extends BaseAdapter
      * @param array  $data
      *
      * @throws JsonException
-     * @throws EnvironmentIsBrokenException
      */
     public function store(string $id, array $data): void
     {

@@ -9,16 +9,14 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Legatus\Http\Session\Store\Adapter;
+namespace Legatus\Http;
 
-use Defuse\Crypto\Exception\EnvironmentIsBrokenException;
-use Defuse\Crypto\Exception\WrongKeyOrModifiedCiphertextException;
-use Legatus\Support\Crypto\Cipher\Cipher;
+use Legatus\Support\Cipher;
 
 /**
- * Class FilesystemAdapter.
+ * Class FilesystemSessionStorage.
  */
-final class FilesystemAdapter extends BaseAdapter
+final class FilesystemSessionStorage extends BaseSessionStorage
 {
     private string $path;
 
@@ -40,7 +38,6 @@ final class FilesystemAdapter extends BaseAdapter
      * @param array  $data
      *
      * @throws \JsonException
-     * @throws EnvironmentIsBrokenException
      */
     public function store(string $id, array $data): void
     {
@@ -64,9 +61,9 @@ final class FilesystemAdapter extends BaseAdapter
      *
      * @return array|null
      *
-     * @throws EnvironmentIsBrokenException
-     * @throws WrongKeyOrModifiedCiphertextException
      * @throws \JsonException
+     * @throws \Legatus\Support\ExpiredCipher
+     * @throws \Legatus\Support\InvalidCipher
      */
     public function retrieve(string $id): ?array
     {

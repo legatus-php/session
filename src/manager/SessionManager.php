@@ -9,14 +9,12 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Legatus\Http\Session\Store;
-
-use Legatus\Http\Session\Session;
+namespace Legatus\Http;
 
 /**
  * Interface SessionStore.
  */
-interface SessionStore
+interface SessionManager
 {
     /**
      * @param string $id

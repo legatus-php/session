@@ -9,14 +9,13 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Legatus\Http\Session;
+namespace Legatus\Http;
 
 use Dflydev\FigCookies\Cookie;
 use Dflydev\FigCookies\Cookies;
 use Dflydev\FigCookies\FigResponseCookies;
 use Dflydev\FigCookies\Modifier\SameSite;
 use Dflydev\FigCookies\SetCookie;
-use Legatus\Http\Session\Store\SessionStore;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface;
@@ -27,20 +26,35 @@ use Psr\Http\Server\RequestHandlerInterface as Next;
  */
 class SessionMiddleware implements MiddlewareInterface
 {
-    public const SESSION_ATTR = 'session';
+    private const SESSION_ATTR = 'session';
 
-    private SessionStore $store;
+    private SessionManager $store;
     private SetCookie $cookie;
     private int $sessionTtl;
 
     /**
+     * @param Request $request
+     *
+     * @return Session
+     */
+    public static function session(Request $request): Session
+    {
+        $session = $request->getAttribute(self::SESSION_ATTR);
+        if ($session instanceof Session) {
+            return $session;
+        }
+        throw new \RuntimeException(sprintf('The requested attribute (%s) is not present in the request.
+            Maybe you forgot to include the %s class in your middleware chain', self::SESSION_ATTR, __CLASS__));
+    }
+
+    /**
      * SessionMiddleware constructor.
      *
-     * @param SessionStore $store
-     * @param SetCookie    $cookie
-     * @param int          $sessionTtl
+     * @param SessionManager $store
+     * @param SetCookie      $cookie
+     * @param int            $sessionTtl
      */
-    public function __construct(SessionStore $store, SetCookie $cookie = null, int $sessionTtl = 3600)
+    public function __construct(SessionManager $store, SetCookie $cookie = null, int $sessionTtl = 3600)
     {
         $this->store = $store;
         $this->sessionTtl = $sessionTtl;

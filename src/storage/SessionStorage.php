@@ -9,12 +9,12 @@ declare(strict_types=1);
  * file that was distributed with this source code.
  */
 
-namespace Legatus\Http\Session\Store\Adapter;
+namespace Legatus\Http;
 
 /**
- * Class StorageAdapter.
+ * Class SessionStorage.
  */
-interface StorageAdapter
+interface SessionStorage
 {
     /**
      * @param string $id
