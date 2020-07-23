@@ -100,6 +100,15 @@ class Session
 
     /**
      * @param string $path
+     */
+    public function unset(string $path): void
+    {
+        $this->pathAssign($this->data, $path, null);
+        $this->update();
+    }
+
+    /**
+     * @param string $path
      *
      * @return bool
      */
