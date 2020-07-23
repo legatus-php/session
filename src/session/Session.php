@@ -79,27 +79,34 @@ class Session
     }
 
     /**
-     * @param string $attr
-     * @param null   $default
-     *
-     * @return mixed|null
+     * @param string $path
+     * @param $value
      */
-    public function get(string $attr, $default = null)
+    public function set(string $path, $value): void
     {
-        return $this->data[$attr] ?? $default;
+        $this->pathAssign($this->data, $path, $value);
+        $this->update();
     }
 
     /**
-     * @param callable $mutator
+     * @param string $path
+     * @param null   $default
      *
-     * @return Session
+     * @return array|mixed|null
      */
-    public function mutate(callable $mutator): Session
+    public function get(string $path, $default = null)
     {
-        $this->data = $mutator($this->data);
-        $this->update();
+        return $this->pathRead($this->data, $path) ?? $default;
+    }
 
-        return $this;
+    /**
+     * @param string $path
+     *
+     * @return bool
+     */
+    public function has(string $path): bool
+    {
+        return $this->pathRead($path) !== null;
     }
 
     /**
@@ -172,5 +179,48 @@ class Session
     private function update(): void
     {
         $this->lastModified = Chronos::now();
+    }
+
+    /**
+     * @param array  $arr
+     * @param string $path
+     * @param $value
+     */
+    protected function pathAssign(array &$arr, string $path, $value): void
+    {
+        $keys = explode('.', $path);
+
+        foreach ($keys as $key) {
+            if (is_numeric($key)) {
+                $key = (int) $key;
+            }
+            $arr = &$arr[$key];
+        }
+
+        $arr = $value;
+    }
+
+    /**
+     * @param array  $data
+     * @param string $path
+     *
+     * @return array|mixed|null
+     */
+    protected function pathRead(?array $data, string $path)
+    {
+        $segments = explode('.', $path);
+        while (count($segments) > 0) {
+            if ($data === null) {
+                return null;
+            }
+            $segment = array_shift($segments);
+
+            if (is_numeric($segment)) {
+                $segment = (int) $segment;
+            }
+            $data = $data[$segment] ?? null;
+        }
+
+        return $data;
     }
 }
