@@ -11,8 +11,7 @@ declare(strict_types=1);
 
 namespace Legatus\Http;
 
-use Cake\Chronos\Chronos;
-use Cake\Chronos\ChronosInterface;
+use Brick\DateTime\Instant;
 use Exception;
 use RuntimeException;
 
@@ -27,8 +26,8 @@ class Session
 {
     private string $id;
     private array $data;
-    private Chronos $lastModified;
-    private Chronos $startedAt;
+    private Instant $lastModified;
+    private Instant $startedAt;
     private bool $destroyed;
 
     /**
@@ -50,7 +49,7 @@ class Session
     {
         $id = self::generateId();
 
-        return new self($id, [], Chronos::now(), Chronos::now());
+        return new self($id, [], Instant::now(), Instant::now());
     }
 
     /**
@@ -58,10 +57,10 @@ class Session
      *
      * @param string  $id
      * @param array   $data
-     * @param Chronos $startedAt
-     * @param Chronos $lastModified
+     * @param Instant $startedAt
+     * @param Instant $lastModified
      */
-    public function __construct(string $id, array $data, Chronos $startedAt, Chronos $lastModified)
+    public function __construct(string $id, array $data, Instant $startedAt, Instant $lastModified)
     {
         $this->id = $id;
         $this->data = $data;
@@ -144,9 +143,9 @@ class Session
     }
 
     /**
-     * @return ChronosInterface
+     * @return Instant
      */
-    public function lastModified(): ChronosInterface
+    public function lastModified(): Instant
     {
         return $this->lastModified;
     }
@@ -158,17 +157,17 @@ class Session
      */
     public function isExpired(int $ttl): bool
     {
-        return $this->lastModified->addSeconds($ttl)->isPast();
+        return $this->lastModified->plusSeconds($ttl)->isPast();
     }
 
-    public function startedAt(): ChronosInterface
+    public function startedAt(): Instant
     {
         return $this->startedAt;
     }
 
     private function update(): void
     {
-        $this->lastModified = Chronos::now();
+        $this->lastModified = Instant::now();
     }
 
     /**

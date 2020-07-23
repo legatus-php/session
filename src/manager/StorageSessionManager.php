@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 namespace Legatus\Http;
 
-use Cake\Chronos\Chronos;
+use Brick\DateTime\Instant;
 
 /**
  * Class AdaptableSessionStore.
@@ -45,8 +45,8 @@ final class StorageSessionManager implements SessionManager
         return new Session(
             $id,
             $data['data'],
-            Chronos::createFromTimestamp($data['startedAt']),
-            Chronos::createFromTimestamp($data['lastModified'])
+            Instant::of($data['startedAt']),
+            Instant::of($data['lastModified'])
         );
     }
 
@@ -65,8 +65,8 @@ final class StorageSessionManager implements SessionManager
     {
         $data = [];
         $data['data'] = $session->all();
-        $data['startedAt'] = $session->startedAt()->getTimestamp();
-        $data['lastModified'] = $session->lastModified()->getTimestamp();
+        $data['startedAt'] = $session->startedAt()->getEpochSecond();
+        $data['lastModified'] = $session->lastModified()->getEpochSecond();
         $this->storage->store($session->getId(), $data);
     }
 
