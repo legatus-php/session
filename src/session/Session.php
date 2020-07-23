@@ -106,17 +106,7 @@ class Session
      */
     public function has(string $path): bool
     {
-        return $this->pathRead($path) !== null;
-    }
-
-    /**
-     * @param string $attr
-     *
-     * @return bool
-     */
-    public function has(string $attr): bool
-    {
-        return array_key_exists($attr, $this->data);
+        return $this->pathRead($this->data, $path) !== null;
     }
 
     /**
