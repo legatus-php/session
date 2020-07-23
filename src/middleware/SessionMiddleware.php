@@ -89,6 +89,7 @@ class SessionMiddleware implements MiddlewareInterface
         // So we remove the old one.
         if ($id !== $session->getId()) {
             $this->store->remove($id);
+            $id = $session->getId();
         }
 
         // If session is destroyed, we return early deleting cookie.
