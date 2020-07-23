@@ -22,7 +22,8 @@
     "autoload-dev": {
         "psr-4": {
             "Legatus\\Http\\":  ["tests/session", "tests/middleware", "tests/storage", "tests/manager"]
-        }
+        },
+        "files": ["tests/Redis.php"]
     },
     "require": {
         "php": ">=7.4",
