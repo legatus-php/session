@@ -88,8 +88,8 @@ class Session
     }
 
     /**
-     * @param string $path
-     * @param null   $default
+     * @param string     $path
+     * @param mixed|null $default
      *
      * @return array|mixed|null
      */

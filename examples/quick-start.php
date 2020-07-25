@@ -20,4 +20,4 @@ $middleware = new Legatus\Http\SessionMiddleware($store);
 $middleware->process($request, $handler);
 
 // Then, in subsequent middleware you can:
-Legatus\Http\SessionMiddleware::session($request)->mutate(fn ($data) => $data['count'] ? $data['count']++ : 1);
+Legatus\Http\SessionMiddleware::session($request)->set('auth.user_id', 'some-id');

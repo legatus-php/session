@@ -9,45 +9,43 @@
             "email": "contact@mnavarro.dev"
         }
     ],
-    "repositories": [{
-        "type": "composer",
-        "url": "https://satis.mnavarro.dev"
-    }],
     "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
-            "Legatus\\Http\\": ["src/session", "src/middleware", "src/storage", "src/manager"]
+            "Legatus\\Http\\": ["src/session", "src/middleware", "src/storage", "src/manager", "src/flash"]
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Legatus\\Http\\":  ["tests/session", "tests/middleware", "tests/storage", "tests/manager"]
-        },
-        "files": ["tests/Redis.php"]
+            "Legatus\\Http\\":  ["tests/session", "tests/middleware", "tests/storage", "tests/manager", "tests/flash"]
+        }
     },
     "require": {
         "php": ">=7.4",
         "ext-json": "*",
         "dflydev/fig-cookies": "^2.0",
         "psr/http-server-middleware": "^1.0",
-        "legatus/crypto": "^0.5.0",
-        "brick/date-time": "^0.2.1"
+        "brick/date-time": "^0.2.1",
+        "legatus/crypto": "^0.1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.0",
         "friendsofphp/php-cs-fixer": "^2.16",
         "vimeo/psalm": "^3.7",
-        "adlawson/vfs": "^0.12.1"
+        "adlawson/vfs": "^0.12.1",
+        "infection/infection": "^0.16.4"
     },
     "scripts": {
         "lint": "php-cs-fixer fix --ansi",
         "ci:style": "php-cs-fixer fix --dry-run -vvv --ansi",
         "ci:test": "phpunit --testdox --coverage-text",
         "ci:types": "psalm",
+        "ci:infection": "infection",
         "ci": [
             "@ci:types",
-            "@ci:test",
-            "@ci:style"
+            "@ci:unit",
+            "@ci:style",
+            "@ci:infection"
         ]
     }
 }
