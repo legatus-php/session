@@ -3,161 +3,59 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Legatus project organization.
- * (c) Matías Navarro-Carter <contact@mnavarro.dev>
+ * @project Legatus Session
+ * @link https://github.com/legatus-php/session
+ * @package legatus/session
+ * @author Matias Navarro-Carter mnavarrocarter@gmail.com
+ * @license MIT
+ * @copyright 2021 Matias Navarro-Carter
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 namespace Legatus\Http;
 
-use Dflydev\FigCookies\Cookie;
-use Dflydev\FigCookies\Cookies;
-use Dflydev\FigCookies\FigResponseCookies;
-use Dflydev\FigCookies\Modifier\SameSite;
-use Dflydev\FigCookies\SetCookie;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface as Next;
+use Psr\Http\Server\RequestHandlerInterface as Handler;
 
 /**
  * Class SessionMiddleware.
  */
-class SessionMiddleware implements MiddlewareInterface
+final class SessionMiddleware implements MiddlewareInterface
 {
-    private const SESSION_ATTR = 'session';
-
-    private SessionManager $store;
-    private SetCookie $cookie;
-    private int $sessionTtl;
-
-    /**
-     * @param Request $request
-     *
-     * @return Session
-     */
-    public static function session(Request $request): Session
-    {
-        $session = $request->getAttribute(self::SESSION_ATTR);
-        if ($session instanceof Session) {
-            return $session;
-        }
-        throw new \RuntimeException(sprintf('The requested attribute (%s) is not present in the request.
-            Maybe you forgot to include the %s class in your middleware chain', self::SESSION_ATTR, __CLASS__));
-    }
+    private SessionStore $store;
 
     /**
      * SessionMiddleware constructor.
      *
-     * @param SessionManager $store
-     * @param SetCookie      $cookie
-     * @param int            $sessionTtl
+     * @param SessionStore $store
      */
-    public function __construct(SessionManager $store, SetCookie $cookie = null, int $sessionTtl = 3600)
+    public function __construct(SessionStore $store)
     {
         $this->store = $store;
-        $this->sessionTtl = $sessionTtl;
-        $this->cookie = $cookie ?? $this->defaultCookie();
     }
 
     /**
      * @param Request $request
-     * @param Next    $next
+     * @param Handler $handler
      *
      * @return Response
-     */
-    public function process(Request $request, Next $next): Response
-    {
-        $cookie = Cookies::fromRequest($request)->get($this->cookie->getName());
-
-        $session = $this->getOrCreateSession($cookie);
-
-        $id = $session->getId();
-        $lastModified = $session->lastModified();
-
-        // If session is expired, regenerate it.
-        if ($session->isExpired($this->sessionTtl)) {
-            $session->regenerate();
-        }
-
-        $response = $next->handle(
-            $request->withAttribute(self::SESSION_ATTR, $session)
-        );
-
-        // If the session id changed it means has been regenerated.
-        // So we remove the old one.
-        if ($id !== $session->getId()) {
-            $this->store->remove($id);
-            $id = $session->getId();
-        }
-
-        // If session is destroyed, we return early deleting cookie.
-        if ($session->isDestroyed()) {
-            $this->store->destroy($session);
-
-            return $this->removeSessionFrom($response);
-        }
-
-        // If the session has changed, we save it and modify response.
-        if ($lastModified !== $session->lastModified()) {
-            $this->store->save($session);
-            $response = $this->updateSessionId($response, $id);
-        }
-
-        return $response;
-    }
-
-    /**
-     * @param Response $response
-     * @param string   $id
      *
-     * @return Response
+     * @throws SessionStoreError
      */
-    private function updateSessionId(Response $response, string $id): Response
+    public function process(Request $request, Handler $handler): Response
     {
-        return FigResponseCookies::set($response, $this->cookie->withValue($id));
-    }
-
-    /**
-     * @param Cookie|null $cookie
-     *
-     * @return Session
-     */
-    private function getOrCreateSession(?Cookie $cookie): Session
-    {
-        if (!$cookie instanceof Cookie) {
-            return $this->store->new();
-        }
-        $session = $this->store->fetch($cookie->getValue() ?? '');
-        if ($session instanceof Session) {
-            return $session;
+        try {
+            $session = $this->store->retrieve($request);
+        } catch (SessionStoreError $e) {
+            $session = $this->store->create($request);
         }
 
-        return $this->store->new();
-    }
+        $response = $handler->handle(SessionContext::initialize($request, $session));
 
-    /**
-     * Returns a very secure default cookie.
-     *
-     * @return SetCookie
-     */
-    private function defaultCookie(): SetCookie
-    {
-        return SetCookie::create('lgsid')
-            ->withPath('/')
-            ->withSameSite(SameSite::strict())
-            ->withHttpOnly(true)
-            ->withMaxAge($this->sessionTtl);
-    }
-
-    /**
-     * @param Response $response
-     *
-     * @return Response
-     */
-    private function removeSessionFrom(Response $response): Response
-    {
-        return FigResponseCookies::remove($response, $this->cookie->getName());
+        return $this->store->store($request, $response, $session);
     }
 }

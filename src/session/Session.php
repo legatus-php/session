@@ -3,118 +3,140 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the Legatus project organization.
- * (c) Matías Navarro-Carter <contact@mnavarro.dev>
+ * @project Legatus Session
+ * @link https://github.com/legatus-php/session
+ * @package legatus/session
+ * @author Matias Navarro-Carter mnavarrocarter@gmail.com
+ * @license MIT
+ * @copyright 2021 Matias Navarro-Carter
+ *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
 
 namespace Legatus\Http;
 
-use Brick\DateTime\Instant;
-use Exception;
-use RuntimeException;
+use InvalidArgumentException;
 
 /**
- * Class Session.
- *
- * Models an HTTP session.
- *
- * Also contains common attributes names that are injected in the user session.
+ * Class Session represents an HTTP Session.
  */
 class Session
 {
     private string $id;
     private array $data;
-    private Instant $lastModified;
-    private Instant $startedAt;
-    private bool $destroyed;
 
-    /**
-     * @return string
-     */
-    protected static function generateId(): string
-    {
-        try {
-            return bin2hex(random_bytes(16));
-        } catch (Exception $e) {
-            throw new RuntimeException('Not enough entropy');
-        }
-    }
+    private const FLASH_KEY = '_flashes';
 
     /**
      * @return Session
      */
-    public static function generate(): Session
+    public static function create(): Session
     {
-        $id = self::generateId();
-
-        return new self($id, [], Instant::now(), Instant::now());
+        return new self('', []);
     }
 
     /**
-     * InMemorySession constructor.
+     * @param array $array
      *
-     * @param string  $id
-     * @param array   $data
-     * @param Instant $startedAt
-     * @param Instant $lastModified
+     * @return Session
      */
-    public function __construct(string $id, array $data, Instant $startedAt, Instant $lastModified)
+    public static function fromArray(array $array): Session
+    {
+        $id = $array['id'] ?? null;
+        $data = $array['data'] ?? null;
+        if ($id === null) {
+            throw new InvalidArgumentException('Session id is missing from array');
+        }
+        if ($data === null) {
+            throw new InvalidArgumentException('Session data is missing from array');
+        }
+
+        return new self($id, $data);
+    }
+
+    /**
+     * Session constructor.
+     *
+     * @param string $id
+     * @param array  $data
+     */
+    public function __construct(string $id, array $data)
     {
         $this->id = $id;
         $this->data = $data;
-        $this->lastModified = $lastModified;
-        $this->startedAt = $startedAt;
-        $this->destroyed = false;
     }
 
     /**
-     * @return string
+     * @param string $key
+     * @param mixed  $value
      */
-    public function getId(): string
+    public function put(string $key, $value): void
     {
-        return $this->id;
+        $this->data[$key] = $value;
     }
 
     /**
-     * @param string $path
+     * @param string $key
      * @param $value
      */
-    public function set(string $path, $value): void
+    public function flash(string $key, $value): void
     {
-        $this->pathAssign($this->data, $path, $value);
-        $this->update();
+        if (!isset($this->data[self::FLASH_KEY])) {
+            $this->data[self::FLASH_KEY] = [];
+        }
+        $this->data[self::FLASH_KEY][$key] = $value;
     }
 
     /**
-     * @param string     $path
-     * @param mixed|null $default
+     * @param string $key
      *
-     * @return array|mixed|null
+     * @return mixed|null
      */
-    public function get(string $path, $default = null)
+    public function get(string $key)
     {
-        return $this->pathRead($this->data, $path) ?? $default;
+        if (array_key_exists($key, $this->data)) {
+            return $this->data[$key];
+        }
+        if (array_key_exists($key, $this->data[self::FLASH_KEY] ?? [])) {
+            $value = $this->data[self::FLASH_KEY][$key];
+            unset($this->data[self::FLASH_KEY][$key]);
+
+            return $value;
+        }
+
+        return null;
     }
 
     /**
-     * @param string $path
+     * @param string $key
      */
-    public function unset(string $path): void
+    public function remove(string $key): void
     {
-        $this->pathAssign($this->data, $path, null);
-        $this->update();
+        if (array_key_exists($key, $this->data)) {
+            unset($this->data[$key]);
+        }
     }
 
     /**
-     * @param string $path
+     * @param string $key
      *
      * @return bool
      */
-    public function has(string $path): bool
+    public function has(string $key): bool
     {
-        return $this->pathRead($this->data, $path) !== null;
+        return array_key_exists($key, $this->data)
+            || array_key_exists($key, $this->data[self::FLASH_KEY] ?? []);
+    }
+
+    /**
+     * @return $this
+     */
+    public function regenerate(): Session
+    {
+        $this->id = '';
+
+        return $this;
     }
 
     /**
@@ -125,100 +147,19 @@ class Session
         return $this->data;
     }
 
-    public function remove(string $attr): void
-    {
-        unset($this->data[$attr]);
-        $this->update();
-    }
-
-    public function regenerate(): void
-    {
-        $this->id = self::generateId();
-        $this->update();
-    }
-
-    public function destroy(): void
-    {
-        $this->destroyed = true;
-        $this->update();
-    }
-
     /**
      * @return bool
      */
-    public function isDestroyed(): bool
+    public function isNew(): bool
     {
-        return $this->destroyed;
+        return $this->id === '';
     }
 
-    /**
-     * @return Instant
-     */
-    public function lastModified(): Instant
+    public function toArray(): array
     {
-        return $this->lastModified;
-    }
-
-    /**
-     * @param int $ttl
-     *
-     * @return bool
-     */
-    public function isExpired(int $ttl): bool
-    {
-        return $this->lastModified->plusSeconds($ttl)->isPast();
-    }
-
-    public function startedAt(): Instant
-    {
-        return $this->startedAt;
-    }
-
-    private function update(): void
-    {
-        $this->lastModified = Instant::now();
-    }
-
-    /**
-     * @param array  $arr
-     * @param string $path
-     * @param $value
-     */
-    protected function pathAssign(array &$arr, string $path, $value): void
-    {
-        $keys = explode('.', $path);
-
-        foreach ($keys as $key) {
-            if (is_numeric($key)) {
-                $key = (int) $key;
-            }
-            $arr = &$arr[$key];
-        }
-
-        $arr = $value;
-    }
-
-    /**
-     * @param array  $data
-     * @param string $path
-     *
-     * @return array|mixed|null
-     */
-    protected function pathRead(?array $data, string $path)
-    {
-        $segments = explode('.', $path);
-        while (count($segments) > 0) {
-            if ($data === null) {
-                return null;
-            }
-            $segment = array_shift($segments);
-
-            if (is_numeric($segment)) {
-                $segment = (int) $segment;
-            }
-            $data = $data[$segment] ?? null;
-        }
-
-        return $data;
+        return [
+            'id' => $this->id,
+            'data' => $this->data,
+        ];
     }
 }

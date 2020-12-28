@@ -18,16 +18,17 @@ composer require legatus/session
 ```php
 <?php
 
-$key = Defuse\Crypto\Key::createNewRandomKey();
-$cipher = new Legatus\Support\DefuseCipher($key);
-$adapter = new Legatus\Http\FilesystemSessionStorage($cipher);
-$store = new Legatus\Http\StorageSessionManager($adapter);
-$middleware = new Legatus\Http\SessionMiddleware($store);
+use Legatus\Http\FilesystemSessionStore;
+use Legatus\Http\SessionContext;
+use Legatus\Http\SessionMiddleware;
+
+$store = new FilesystemSessionStore('/temp/sessions');
+$middleware = new SessionMiddleware($store);
 
 $middleware->process($request, $handler);
 
 // Then, in subsequent middleware you can:
-Legatus\Http\SessionMiddleware::session($request)->set('auth.user_id', 'some-id');
+SessionContext::from($request)->put('auth.user_id', 'some-id');
 ```
 
 For more details you can check the [online documentation here][docs].

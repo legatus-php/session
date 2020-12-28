@@ -12,40 +12,32 @@
     "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
-            "Legatus\\Http\\": ["src/session", "src/middleware", "src/storage", "src/manager", "src/flash"]
+            "Legatus\\Http\\": ["src/session", "src/middleware", "src/store", "src/cookie"]
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Legatus\\Http\\":  ["tests/session", "tests/middleware", "tests/storage", "tests/manager", "tests/flash"]
+            "Legatus\\Http\\": "tests"
         }
     },
     "require": {
         "php": ">=7.4",
-        "ext-json": "*",
         "dflydev/fig-cookies": "^2.0",
         "psr/http-server-middleware": "^1.0",
-        "brick/date-time": "^0.2.1",
-        "legatus/crypto": "^0.1.0"
+        "legatus/crypto": "^0.2.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.0",
         "friendsofphp/php-cs-fixer": "^2.16",
         "vimeo/psalm": "^3.7",
-        "adlawson/vfs": "^0.12.1",
-        "infection/infection": "^0.16.4"
+        "adlawson/vfs": "^0.12.1"
     },
     "scripts": {
         "lint": "php-cs-fixer fix --ansi",
-        "ci:style": "php-cs-fixer fix --dry-run -vvv --ansi",
-        "ci:test": "phpunit --testdox --coverage-text",
-        "ci:types": "psalm",
-        "ci:infection": "infection",
-        "ci": [
-            "@ci:types",
-            "@ci:unit",
-            "@ci:style",
-            "@ci:infection"
+        "pr": [
+            "php-cs-fixer fix --dry-run -vvv",
+            "psalm --no-cache --stats",
+            "XDEBUG_MODE=coverage phpunit --testdox --coverage-text"
         ]
     }
 }
