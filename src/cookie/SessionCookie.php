@@ -30,7 +30,7 @@ class SessionCookie extends SetCookie
             ->withPath('/')
             ->withSameSite(SameSite::none())
             ->withHttpOnly(true)
-            ->withSecure(true)
+            ->withSecure(false)
             ->withMaxAge(3600);
     }
 }
