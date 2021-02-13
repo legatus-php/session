@@ -22,7 +22,7 @@
     },
     "require": {
         "php": ">=7.4",
-        "dflydev/fig-cookies": "^2.0",
+        "dflydev/fig-cookies": "^2.0|^3.0",
         "psr/http-server-middleware": "^1.0",
         "legatus/crypto": "^0.3.0"
     },
