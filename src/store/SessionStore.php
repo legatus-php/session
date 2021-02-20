@@ -59,4 +59,14 @@ interface SessionStore
      * @throws SessionStoreError when the session cannot be saved
      */
     public function store(Request $request, Response $response, Session $session): Response;
+
+    /**
+     * Destroys a session.
+     *
+     * @param Session  $session
+     * @param Response $response
+     *
+     * @return Response
+     */
+    public function destroy(Session $session, Response $response): Response;
 }

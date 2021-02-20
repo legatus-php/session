@@ -17,7 +17,6 @@ declare(strict_types=1);
 namespace Legatus\Http;
 
 use Dflydev\FigCookies\SetCookie;
-use Exception;
 use InvalidArgumentException;
 use Legatus\Support\Cipher;
 use Legatus\Support\ExpiredCipher;
@@ -86,19 +85,5 @@ final class EncryptedCookieSessionStore extends CookieSessionStore
         $message = serialize($array);
 
         return $this->cipher->encrypt($message);
-    }
-
-    /**
-     * @return string
-     *
-     * @throws SessionStoreError
-     */
-    protected function createId(): string
-    {
-        try {
-            return bin2hex(random_bytes(16));
-        } catch (Exception $e) {
-            throw new SessionStoreError('Not enough entropy');
-        }
     }
 }

@@ -17,6 +17,8 @@ declare(strict_types=1);
 namespace Legatus\Http;
 
 use InvalidArgumentException;
+use Lcobucci\Clock\Clock;
+use Lcobucci\Clock\SystemClock;
 
 /**
  * Class Session represents an HTTP Session.
@@ -25,6 +27,7 @@ class Session
 {
     private string $id;
     private array $data;
+    private int $created;
 
     private const FLASH_KEY = '_flashes';
 
@@ -33,7 +36,7 @@ class Session
      */
     public static function create(): Session
     {
-        return new self('', []);
+        return new self('', time(), []);
     }
 
     /**
@@ -44,27 +47,38 @@ class Session
     public static function fromArray(array $array): Session
     {
         $id = $array['id'] ?? null;
+        $created = $array['created'] ?? null;
         $data = $array['data'] ?? null;
         if ($id === null) {
             throw new InvalidArgumentException('Session id is missing from array');
+        }
+        if ($created === null) {
+            throw new InvalidArgumentException('Session creation time is missing from array');
         }
         if ($data === null) {
             throw new InvalidArgumentException('Session data is missing from array');
         }
 
-        return new self($id, $data);
+        return new self($id, (int) $created, $data);
     }
 
     /**
      * Session constructor.
      *
      * @param string $id
+     * @param int    $created
      * @param array  $data
      */
-    public function __construct(string $id, array $data)
+    public function __construct(string $id, int $created, array $data)
     {
         $this->id = $id;
+        $this->created = $created;
         $this->data = $data;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
     }
 
     /**
@@ -129,12 +143,21 @@ class Session
             || array_key_exists($key, $this->data[self::FLASH_KEY] ?? []);
     }
 
+    public function getCreated(): int
+    {
+        return $this->created;
+    }
+
     /**
+     * @param Clock|null $clock
+     *
      * @return $this
      */
-    public function regenerate(): Session
+    public function regenerate(Clock $clock = null): Session
     {
+        $clock = $clock ?? SystemClock::fromUTC();
         $this->id = '';
+        $this->created = $clock->now()->getTimestamp();
 
         return $this;
     }
@@ -159,6 +182,7 @@ class Session
     {
         return [
             'id' => $this->id,
+            'created' => $this->created,
             'data' => $this->data,
         ];
     }

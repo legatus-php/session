@@ -19,6 +19,7 @@ namespace Legatus\Http;
 use Dflydev\FigCookies\FigRequestCookies;
 use Dflydev\FigCookies\FigResponseCookies;
 use Dflydev\FigCookies\SetCookie;
+use Exception;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -94,4 +95,29 @@ abstract class CookieSessionStore implements SessionStore
      * @throws SessionStoreError
      */
     abstract protected function doRetrieve(Request $request, string $cookieValue): Session;
+
+    /**
+     * @return string
+     *
+     * @throws SessionStoreError
+     */
+    protected function createId(): string
+    {
+        try {
+            return bin2hex(random_bytes(16));
+        } catch (Exception $e) {
+            throw new SessionStoreError('Could not store session: not enough entropy for identifier', 0, $e);
+        }
+    }
+
+    /**
+     * @param Session  $session
+     * @param Response $response
+     *
+     * @return Response
+     */
+    public function destroy(Session $session, Response $response): Response
+    {
+        return FigResponseCookies::remove($response, $this->cookie->getName());
+    }
 }

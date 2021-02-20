@@ -44,7 +44,7 @@ final class FilesystemSessionStore extends CookieSessionStore
     {
         parent::__construct($cookie);
         $this->path = $path;
-        $this->clock = $clock ?? new SystemClock();
+        $this->clock = $clock ?? SystemClock::fromUTC();
     }
 
     /**
@@ -61,12 +61,18 @@ final class FilesystemSessionStore extends CookieSessionStore
         if (!is_file($filename)) {
             throw new SessionStoreError('Could not retrieve session: session file is missing');
         }
-        if ($this->cookie->getMaxAge() > 0) {
-            $this->validateId($cookieValue, $this->cookie->getMaxAge());
-        }
-        $data = unserialize(file_get_contents($filename), [false]);
 
-        return Session::fromArray($data);
+        $data = unserialize(file_get_contents($filename), [false]);
+        $session = Session::fromArray($data);
+
+        $maxAge = $this->cookie->getMaxAge();
+        $now = $this->clock->now()->getTimestamp();
+        $isSessionExpired = $maxAge > 0 && ($session->getCreated() + $maxAge) < $now;
+        if ($isSessionExpired) {
+            throw new SessionStoreError('Could not retrieve session: session has expired');
+        }
+
+        return $session;
     }
 
     /**
@@ -108,49 +114,20 @@ final class FilesystemSessionStore extends CookieSessionStore
     }
 
     /**
-     * @return string
+     * @param Session  $session
+     * @param Response $response
+     *
+     * @return Response
      *
      * @throws SessionStoreError
      */
-    private function createId(): string
+    public function destroy(Session $session, Response $response): Response
     {
-        try {
-            return bin2hex($this->getUInt64Time().random_bytes(8));
-        } catch (\Exception $e) {
-            throw new SessionStoreError('Not enough entropy');
+        if ($session->getId() !== '') {
+            $filename = $this->filename($session->getId());
+            unlink($filename);
         }
-    }
 
-    /**
-     * @param string $id
-     * @param int    $ttl
-     *
-     * @throws SessionStoreError
-     */
-    private function validateId(string $id, int $ttl): void
-    {
-        $expires = $this->getTimestamp(substr(hex2bin($id), 0, 8)) + $ttl;
-        $now = $this->clock->now()->getTimestamp();
-        if ($expires < $now) {
-            throw new SessionStoreError('Could not retrieve session: session has expired');
-        }
-    }
-
-    /**
-     * @return string
-     */
-    private function getUInt64Time(): string
-    {
-        return pack('J', $this->clock->now()->getTimestamp());
-    }
-
-    /**
-     * @param string $uInt64
-     *
-     * @return int
-     */
-    private function getTimestamp(string $uInt64): int
-    {
-        return unpack('J', $uInt64)[1];
+        return parent::destroy($session, $response);
     }
 }

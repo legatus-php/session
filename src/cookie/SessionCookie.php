@@ -28,7 +28,7 @@ class SessionCookie extends SetCookie
     {
         return parent::create('lg_sess')
             ->withPath('/')
-            ->withSameSite(SameSite::none())
+            ->withSameSite(SameSite::strict())
             ->withHttpOnly(true)
             ->withSecure(false)
             ->withMaxAge(3600);
